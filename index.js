@@ -1,6 +1,13 @@
-const io=require('socket.io')(8900,{
+const config=require('./config/constants')
+const path=require('path')
+require('dotenv').config()
+
+const PORT=config.PORT;
+const originUrl=config.origin_url
+
+const io=require('socket.io')(PORT,{
     cors:{
-        origin:"https://friendbook-rsch.onrender.com"
+        origin:originUrl
     }
 });
 
@@ -28,6 +35,7 @@ io.on("connection", (socket)=>{
     console.log("A user is connected");
     
     socket.on("addUser", userId=>{
+        console.log("addUser")
          userId && addUser(userId, socket.id);
          const usersId=getUsersId();
          io.emit('getUsers', usersId)
@@ -41,6 +49,12 @@ io.on("connection", (socket)=>{
             text
           })
     })
+
+    socket.on('newNotification', ({recieverId})=>{
+        const user=getUser(recieverId);
+        user && io.to(user.socketId).emit('getNotifications', {})
+    })
+
 
     socket.on('disconnect', ()=>{
         console.log("A user is disconnected")
